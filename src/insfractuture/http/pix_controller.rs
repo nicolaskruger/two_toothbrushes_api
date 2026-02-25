@@ -1,8 +1,15 @@
 use actix_web::{HttpResponse, Responder, post, web};
+use validator::Validate;
 
-#[post("/pix/create/{reais}")]
-async fn create(path: web::Path<u32>) -> impl Responder {
-    HttpResponse::Ok().body(path.to_string())
+use crate::insfractuture::http::dto::create_payment_request::CreatePaymentRequest;
+
+#[post("/pix/create/")]
+async fn create(body: web::Json<CreatePaymentRequest>) -> impl Responder {
+    if let Err(errors) = body.validate() {
+        return HttpResponse::BadRequest().json(errors);
+    }
+
+    HttpResponse::Ok().body(body.user_name.to_string())
 }
 
 pub fn pix_ccontroller_factor(conf: &mut web::ServiceConfig) {
