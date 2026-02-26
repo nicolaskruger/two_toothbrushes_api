@@ -2,6 +2,7 @@ use actix_web::web;
 
 use crate::insfractuture::http::pix_controller::pix_ccontroller_factor;
 
+pub mod config;
 pub mod http;
 pub mod persistence;
 

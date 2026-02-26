@@ -1,3 +1,7 @@
+use actix_web::Error;
+
+use crate::domain::entities::payment::Payment;
+
 pub trait PixRepository {
-    fn generate_url(&mut self, reais: u32) -> impl Future<Output = String>;
+    async fn register_payment(&mut self, payment: Payment) -> Result<(), Error>;
 }

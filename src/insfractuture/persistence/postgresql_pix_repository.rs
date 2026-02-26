@@ -1,9 +1,9 @@
-use crate::domain::repository::pix_repository::{self, PixRepository};
+use crate::domain::{entities::payment::Payment, repository::pix_repository::PixRepository};
 
-struct PostgresqlPixRepository {}
+pub struct PostgresqlPixRepository {}
 
 impl PixRepository for PostgresqlPixRepository {
-    async fn generate_url(&mut self, reais: u32) -> String {
-        return "url".to_string();
+    async fn register_payment(&mut self, payment: Payment) -> Result<(), actix_web::Error> {
+        todo!()
     }
 }
