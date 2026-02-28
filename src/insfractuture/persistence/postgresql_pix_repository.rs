@@ -3,7 +3,7 @@ use crate::domain::{entities::payment::Payment, repository::pix_repository::PixR
 pub struct PostgresqlPixRepository {}
 
 impl PixRepository for PostgresqlPixRepository {
-    async fn register_payment(&mut self, payment: Payment) -> Result<(), actix_web::Error> {
+    async fn register_payment(&mut self, _: Payment) -> Result<(), actix_web::Error> {
         todo!()
     }
 }
