@@ -7,7 +7,7 @@ pub struct Settings {
 impl Settings {
     pub fn load() -> Self {
         Self {
-            postgresql_url: env::var("POSTGRESQL_URL").expect("not set POSTGRESQL_URL"),
+            postgresql_url: env::var("POSTGRESQL_URI").expect("not set POSTGRESQL_URI"),
         }
     }
 }
