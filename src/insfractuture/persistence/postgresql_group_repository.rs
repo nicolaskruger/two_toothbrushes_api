@@ -1,6 +1,9 @@
 use sqlx::{PgPool, query, query_scalar};
 
-use crate::domain::repository::group_repository::GroupRepository;
+use crate::{
+    domain::repository::group_repository::GroupRepository,
+    insfractuture::persistence::models::group_row::GroupRow,
+};
 
 use uuid::Uuid;
 
@@ -26,10 +29,7 @@ impl PostgresqlGroupRepository {
         Ok(count)
     }
 
-    async fn _create(
-        &mut self,
-        group: &crate::domain::entities::group::Group,
-    ) -> Result<(), sqlx::Error> {
+    async fn _create(&mut self, group: &GroupRow) -> Result<(), sqlx::Error> {
         query!(
             r#"
                 INSERT INTO groups (id, name, password)
@@ -57,17 +57,24 @@ impl GroupRepository for PostgresqlGroupRepository {
         &mut self,
         group: &crate::domain::entities::group::Group,
     ) -> Result<(), actix_web::Error> {
-        self._create(group).await.expect("somethisng went wrong ");
+        let grouo_row: GroupRow = group.into();
+        self._create(&grouo_row)
+            .await
+            .expect("somethisng went wrong ");
         Ok(())
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use chrono::Utc;
     use dotenv::dotenv;
     use sqlx::postgres::PgPoolOptions;
 
-    use crate::{domain::entities::group::Group, insfractuture::config::settings::Settings};
+    use crate::{
+        domain::{entities::group::Group, value_object::hashed_password::HashedPassword},
+        insfractuture::config::settings::Settings,
+    };
 
     use super::*;
 
@@ -104,10 +111,11 @@ mod tests {
             .await
             .expect("not connected");
 
-        let group = Group {
-            name: "name".to_string(),
-            password: "password".to_string(),
-        };
+        let group = Group::create(
+            "name".to_string(),
+            HashedPassword::new("password".to_string()),
+            Utc::now(),
+        );
 
         let mut repo = PostgresqlGroupRepository::new(pool);
 
