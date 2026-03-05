@@ -44,7 +44,7 @@ impl Group {
         &self.password
     }
 
-    pub fn created_at(&self) -> &DateTime<Utc> {
-        &self.created_at
+    pub fn created_at(&self) -> DateTime<Utc> {
+        self.created_at
     }
 }

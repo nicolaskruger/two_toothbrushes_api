@@ -9,7 +9,7 @@ impl From<&Group> for GroupRow {
             id: group.id().as_uuid(),
             name: group.name().to_string(),
             password: group.password().as_str().to_string(),
-            created_at: group.created_at().clone(),
+            created_at: group.created_at(),
         }
     }
 }
@@ -19,8 +19,8 @@ impl From<&User> for UserRow {
         Self {
             id: user.id().as_uuid(),
             name: user.name().to_string(),
-            is_confirm: user.is_confirm().clone(),
-            created_at: user.created_at().clone(),
+            is_confirm: user.is_confirm(),
+            created_at: user.created_at(),
             group_id: user.group_id().as_uuid(),
         }
     }

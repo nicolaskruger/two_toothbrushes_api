@@ -38,11 +38,11 @@ impl User {
         &self.name
     }
 
-    pub fn is_confirm(&self) -> &bool {
-        &self.is_confirm
+    pub fn is_confirm(&self) -> bool {
+        self.is_confirm
     }
 
-    pub fn created_at(&self) -> &DateTime<Utc> {
-        &self.created_at
+    pub fn created_at(&self) -> DateTime<Utc> {
+        self.created_at
     }
 }
