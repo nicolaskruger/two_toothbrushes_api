@@ -5,8 +5,6 @@ use crate::{
     insfractuture::persistence::models::group_row::GroupRow,
 };
 
-use uuid::Uuid;
-
 pub struct PostgresqlGroupRepository {
     pool: PgPool,
 }
@@ -35,7 +33,7 @@ impl PostgresqlGroupRepository {
                 INSERT INTO groups (id, name, password)
                 VALUES ($1, $2, $3);
             "#,
-            Uuid::new_v4(),
+            group.id,
             group.name,
             group.password
         )

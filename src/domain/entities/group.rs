@@ -10,6 +10,19 @@ pub struct Group {
 }
 
 impl Group {
+    pub fn reconstitute(
+        id: GroupId,
+        name: String,
+        password: HashedPassword,
+        created_at: DateTime<Utc>,
+    ) -> Self {
+        Self {
+            id,
+            name,
+            password,
+            created_at,
+        }
+    }
     pub fn create(name: String, password: HashedPassword, created_at: DateTime<Utc>) -> Self {
         Self {
             id: GroupId::new(),

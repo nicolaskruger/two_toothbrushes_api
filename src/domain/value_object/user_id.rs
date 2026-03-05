@@ -1,8 +1,8 @@
 use uuid::Uuid;
 
-pub struct GroupId(uuid::Uuid);
+pub struct UserId(uuid::Uuid);
 
-impl GroupId {
+impl UserId {
     pub fn new() -> Self {
         Self(Uuid::new_v4())
     }
@@ -16,7 +16,7 @@ impl GroupId {
     }
 }
 
-impl Default for GroupId {
+impl Default for UserId {
     fn default() -> Self {
         Self::new()
     }
