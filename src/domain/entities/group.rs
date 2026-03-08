@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 
 use crate::domain::value_object::{group_id::GroupId, hashed_password::HashedPassword};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Group {
     id: GroupId,
     name: String,

@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct GroupId(uuid::Uuid);
 
 impl GroupId {

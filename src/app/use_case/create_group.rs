@@ -3,8 +3,7 @@ use chrono::Utc;
 use uuid::Uuid;
 
 use crate::domain::{
-    entities::group::Group,
-    repository::{self, group_repository::GroupRepository},
+    entities::group::Group, repository::group_repository::GroupRepository,
     services::password_hasher::PasswordHasher,
 };
 
@@ -85,6 +84,13 @@ mod tests {
             let mut groups = self.groups.lock().unwrap();
             groups.push(group.clone());
             Ok(())
+        }
+
+        async fn find_by_id(
+            &mut self,
+            id: &crate::domain::value_object::group_id::GroupId,
+        ) -> Result<Group, Error> {
+            todo!()
         }
     }
 
