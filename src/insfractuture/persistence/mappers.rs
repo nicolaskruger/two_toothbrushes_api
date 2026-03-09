@@ -1,5 +1,3 @@
-use uuid::Uuid;
-
 use crate::domain::entities::group::Group;
 use crate::domain::entities::user::User;
 use crate::domain::value_object::group_id::GroupId;

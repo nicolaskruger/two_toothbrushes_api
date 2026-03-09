@@ -2,7 +2,6 @@ use sqlx::{PgPool, query, query_as, query_scalar};
 use uuid::Uuid;
 
 use crate::domain::repository::group_repository::GroupRepositoryError;
-use crate::insfractuture::persistence::mappers;
 
 use crate::{
     domain::{entities::group::Group, repository::group_repository::GroupRepository},
