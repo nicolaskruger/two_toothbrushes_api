@@ -1,5 +1,6 @@
 use uuid::Uuid;
 
+#[derive(Clone, Debug)]
 pub struct UserId(uuid::Uuid);
 
 impl UserId {

@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 
 use crate::domain::value_object::{group_id::GroupId, user_id::UserId};
 
+#[derive(Clone, Debug)]
 pub struct User {
     id: UserId,
     group_id: GroupId,

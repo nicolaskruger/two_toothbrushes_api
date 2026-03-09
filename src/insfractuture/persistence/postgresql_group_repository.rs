@@ -1,6 +1,7 @@
 use sqlx::{PgPool, query, query_as, query_scalar};
 use uuid::Uuid;
 
+use crate::domain::repository::group_repository::GroupRepositoryError;
 use crate::insfractuture::persistence::mappers;
 
 use crate::{
@@ -62,8 +63,11 @@ impl PostgresqlGroupRepository {
 }
 
 impl GroupRepository for PostgresqlGroupRepository {
-    async fn count(&mut self) -> Result<i64, actix_web::Error> {
-        let count = self._count().await.expect("somethisng went wrong ");
+    async fn count(&mut self) -> Result<i64, GroupRepositoryError> {
+        let count = self
+            ._count()
+            .await
+            .map_err(|_| GroupRepositoryError::SQLError)?;
 
         Ok(count)
     }
@@ -71,22 +75,22 @@ impl GroupRepository for PostgresqlGroupRepository {
     async fn create(
         &mut self,
         group: &crate::domain::entities::group::Group,
-    ) -> Result<(), actix_web::Error> {
+    ) -> Result<(), GroupRepositoryError> {
         let grouo_row: GroupRow = group.into();
         self._create(&grouo_row)
             .await
-            .expect("somethisng went wrong ");
+            .map_err(|_| GroupRepositoryError::SQLError)?;
         Ok(())
     }
 
     async fn find_by_id(
         &mut self,
         id: &crate::domain::value_object::group_id::GroupId,
-    ) -> Result<Group, actix_web::Error> {
+    ) -> Result<Group, GroupRepositoryError> {
         let group_row = self
             ._find_by_id(id.as_uuid())
             .await
-            .expect("can't find the user");
+            .map_err(|_| GroupRepositoryError::NotFound)?;
 
         let group: Group = group_row.into();
 

@@ -61,7 +61,7 @@ mod tests {
     use std::sync::{Arc, Mutex};
 
     use crate::{
-        domain::entities::group::Group,
+        domain::{entities::group::Group, repository::group_repository::GroupRepositoryError},
         insfractuture::security::argon2_password_hasher::Aragon2PasswordHash,
     };
 
@@ -72,7 +72,7 @@ mod tests {
     }
 
     impl GroupRepository for TGroupRepository {
-        async fn count(&mut self) -> Result<i64, actix_web::Error> {
+        async fn count(&mut self) -> Result<i64, GroupRepositoryError> {
             let groups = self.groups.lock().unwrap();
             Ok(groups.len() as i64)
         }
@@ -80,7 +80,7 @@ mod tests {
         async fn create(
             &mut self,
             group: &crate::domain::entities::group::Group,
-        ) -> Result<(), actix_web::Error> {
+        ) -> Result<(), GroupRepositoryError> {
             let mut groups = self.groups.lock().unwrap();
             groups.push(group.clone());
             Ok(())
@@ -89,8 +89,14 @@ mod tests {
         async fn find_by_id(
             &mut self,
             id: &crate::domain::value_object::group_id::GroupId,
-        ) -> Result<Group, Error> {
-            todo!()
+        ) -> Result<Group, GroupRepositoryError> {
+            let groups = self.groups.lock().unwrap();
+            let group = groups
+                .iter()
+                .find(|g| g.id().as_uuid() == id.as_uuid())
+                .unwrap();
+
+            Ok(group.clone())
         }
     }
 
