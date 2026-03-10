@@ -1,50 +1,46 @@
-use actix_web::Error;
+use chrono::Utc;
 use uuid::Uuid;
 
 use crate::domain::{
     entities::user::User,
     repository::{group_repository::GroupRepository, user_repository::UserRepository},
-    services::password_hasher::PasswordHasher,
     value_object::group_id::GroupId,
 };
 
 pub struct CreateUserInput {
-    id_group: Uuid,
-    name: String,
+    pub id_group: Uuid,
+    pub name: String,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct CreateUserOutput {
-    id: Uuid,
+    pub id: Uuid,
 }
 
-pub struct CreateUserCase<RG, RU, H>
+pub struct CreateUserCase<RG, RU>
 where
     RG: GroupRepository,
     RU: UserRepository,
-    H: PasswordHasher,
 {
     group_repossitor: RG,
     user_repossitor: RU,
-    password_hasher: H,
 }
 
 #[derive(Debug, PartialEq)]
 pub enum CreateUserError {
     GroupNotFound,
+    CouldNotCreate,
 }
 
-impl<RG, RU, H> CreateUserCase<RG, RU, H>
+impl<RG, RU> CreateUserCase<RG, RU>
 where
     RG: GroupRepository,
     RU: UserRepository,
-    H: PasswordHasher,
 {
-    pub fn new(group_repossitor: RG, user_repossitor: RU, password_hasher: H) -> Self {
+    pub fn new(group_repossitor: RG, user_repossitor: RU) -> Self {
         Self {
             group_repossitor,
             user_repossitor,
-            password_hasher,
         }
     }
     pub async fn execute(
@@ -57,11 +53,19 @@ where
             .await
             .map_err(|_| CreateUserError::GroupNotFound)?;
 
-        todo!();
+        let group_id = GroupId::from_uuid(input.id_group);
+
+        let user = User::create(input.name.to_string(), false, group_id, Utc::now());
+
+        self.user_repossitor
+            .create_user(&user)
+            .await
+            .map_err(|_| CreateUserError::CouldNotCreate)?;
+
+        Ok(CreateUserOutput {
+            id: user.id().as_uuid(),
+        })
     }
-}
-pub async fn create_user(_: User) {
-    todo!()
 }
 
 #[cfg(test)]
@@ -69,8 +73,10 @@ mod tests {
 
     use std::sync::{Arc, Mutex};
 
+    use chrono::Utc;
+
     use crate::{
-        domain::entities::group::Group,
+        domain::{entities::group::Group, services::password_hasher::PasswordHasher},
         insfractuture::{
             persistence::{
                 memory_group_repository::MemoryGroupRepository,
@@ -104,9 +110,7 @@ mod tests {
             users: arc_users.clone(),
         };
 
-        let hasher = Aragon2PasswordHash {};
-
-        let mut case = CreateUserCase::new(g_repo, u_repo, hasher);
+        let mut case = CreateUserCase::new(g_repo, u_repo);
 
         let res = case.execute(u_input).await;
 
@@ -120,5 +124,46 @@ mod tests {
     #[tokio::test]
     async fn create_group_test() {
         // cargo test create_group_test
+
+        let arc_groups = Arc::new(Mutex::new(Vec::<Group>::new()));
+
+        let mut g_repo = MemoryGroupRepository {
+            groups: arc_groups.clone(),
+        };
+
+        let hasher = Aragon2PasswordHash {};
+
+        let group_password = hasher.hash("passwod").unwrap();
+
+        let group = Group::create("group".to_string(), group_password, Utc::now());
+
+        g_repo.create(&group).await.expect("");
+
+        {
+            let groups = arc_groups.lock().unwrap();
+
+            assert_eq!(groups.len(), 1);
+        }
+
+        let arc_users = Arc::new(Mutex::new(Vec::<User>::new()));
+
+        let u_repo = MemoryUserRepository {
+            users: arc_users.clone(),
+        };
+
+        let u_input = CreateUserInput {
+            id_group: group.id().as_uuid(),
+            name: "u_name".to_string(),
+        };
+
+        let mut case = CreateUserCase::new(g_repo, u_repo);
+
+        let res = case.execute(u_input).await;
+
+        assert_ne!(res, Err(CreateUserError::GroupNotFound));
+
+        let users = arc_users.lock().unwrap();
+
+        assert_eq!(users.len(), 1);
     }
 }
