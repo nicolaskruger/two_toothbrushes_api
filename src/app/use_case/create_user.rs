@@ -72,30 +72,15 @@ mod tests {
     use crate::{
         domain::entities::group::Group,
         insfractuture::{
-            persistence::memory_group_repository::MemoryGroupRepository,
+            persistence::{
+                memory_group_repository::MemoryGroupRepository,
+                memory_user_repository::MemoryUserRepository,
+            },
             security::argon2_password_hasher::Aragon2PasswordHash,
         },
     };
 
     use super::*;
-
-    struct TUserRepository {
-        pub users: Arc<Mutex<Vec<User>>>,
-    }
-
-    impl UserRepository for TUserRepository {
-        async fn count(&mut self) -> Result<i64, actix_web::Error> {
-            let groups = self.users.lock().unwrap();
-            Ok(groups.len() as i64)
-        }
-
-        async fn create_user(&mut self, user: &User) -> Result<(), Error> {
-            let mut groups = self.users.lock().unwrap();
-            groups.push(user.clone());
-            Ok(())
-        }
-    }
-
     #[tokio::test]
     async fn do_not_create_user_when_no_group_test() {
         // cargo test do_not_create_user_when_no_group_test
@@ -115,7 +100,7 @@ mod tests {
 
         let arc_users = Arc::new(Mutex::new(Vec::<User>::new()));
 
-        let u_repo = TUserRepository {
+        let u_repo = MemoryUserRepository {
             users: arc_users.clone(),
         };
 

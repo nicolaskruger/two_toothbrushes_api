@@ -1,7 +1,7 @@
 use sqlx::{PgPool, query, query_scalar};
 
 use crate::{
-    domain::repository::user_repository::UserRepository,
+    domain::repository::user_repository::{UserRepository, UserRepositoryError},
     insfractuture::persistence::models::user_row::UserRow,
 };
 
@@ -48,16 +48,21 @@ impl UserRepository for PostgresqlUserRepository {
     async fn create_user(
         &mut self,
         user: &crate::domain::entities::user::User,
-    ) -> Result<(), actix_web::Error> {
+    ) -> Result<(), UserRepositoryError> {
         let user_row: UserRow = user.into();
 
-        self._create(&user_row).await.expect("can't insert user");
+        self._create(&user_row)
+            .await
+            .map_err(|_| UserRepositoryError::CouldNotCreate)?;
 
         Ok(())
     }
 
-    async fn count(&mut self) -> Result<i64, actix_web::Error> {
-        let count = self._count().await.expect("somethisng went wrong ");
+    async fn count(&mut self) -> Result<i64, UserRepositoryError> {
+        let count = self
+            ._count()
+            .await
+            .map_err(|_| UserRepositoryError::SQLError)?;
 
         Ok(count)
     }
