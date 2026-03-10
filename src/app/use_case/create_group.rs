@@ -61,45 +61,14 @@ mod tests {
     use std::sync::{Arc, Mutex};
 
     use crate::{
-        domain::{entities::group::Group, repository::group_repository::GroupRepositoryError},
-        insfractuture::security::argon2_password_hasher::Aragon2PasswordHash,
+        domain::entities::group::Group,
+        insfractuture::{
+            persistence::memory_group_repository::MemoryGroupRepository,
+            security::argon2_password_hasher::Aragon2PasswordHash,
+        },
     };
 
     use super::*;
-
-    struct TGroupRepository {
-        pub groups: Arc<Mutex<Vec<Group>>>,
-    }
-
-    impl GroupRepository for TGroupRepository {
-        async fn count(&mut self) -> Result<i64, GroupRepositoryError> {
-            let groups = self.groups.lock().unwrap();
-            Ok(groups.len() as i64)
-        }
-
-        async fn create(
-            &mut self,
-            group: &crate::domain::entities::group::Group,
-        ) -> Result<(), GroupRepositoryError> {
-            let mut groups = self.groups.lock().unwrap();
-            groups.push(group.clone());
-            Ok(())
-        }
-
-        async fn find_by_id(
-            &mut self,
-            id: &crate::domain::value_object::group_id::GroupId,
-        ) -> Result<Group, GroupRepositoryError> {
-            let groups = self.groups.lock().unwrap();
-            let group = groups
-                .iter()
-                .find(|g| g.id().as_uuid() == id.as_uuid())
-                .unwrap();
-
-            Ok(group.clone())
-        }
-    }
-
     #[tokio::test]
     async fn create_user_test() {
         // cargo test create_user_test
@@ -110,7 +79,7 @@ mod tests {
 
         let arc_groups = Arc::new(Mutex::new(Vec::<Group>::new()));
 
-        let repo = TGroupRepository {
+        let repo = MemoryGroupRepository {
             groups: arc_groups.clone(),
         };
 
