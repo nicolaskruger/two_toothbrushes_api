@@ -1,5 +1,6 @@
 use crate::domain::{
-    repository::group_repository::GroupRepository, services::password_hasher::PasswordHasher,
+    repository::{auth_repository::AuthRepository, group_repository::GroupRepository},
+    services::password_hasher::PasswordHasher,
 };
 
 pub struct AuthGroupInput {
@@ -14,24 +15,32 @@ pub struct AuthGroupOutput {
 pub enum AuthGroupError {
     NotFound,
     WrongPassword,
+    GenTokenError,
 }
 
-pub struct AuthGroupCase<R, H>
+pub struct AuthGroupCase<R, H, A>
 where
     R: GroupRepository,
     H: PasswordHasher,
+    A: AuthRepository,
 {
     repository: R,
     hasher: H,
+    auth: A,
 }
 
-impl<R, H> AuthGroupCase<R, H>
+impl<R, H, A> AuthGroupCase<R, H, A>
 where
     R: GroupRepository,
     H: PasswordHasher,
+    A: AuthRepository,
 {
-    pub fn new(repository: R, hasher: H) -> Self {
-        Self { repository, hasher }
+    pub fn new(repository: R, hasher: H, auth: A) -> Self {
+        Self {
+            repository,
+            hasher,
+            auth,
+        }
     }
 
     pub async fn execute(
@@ -51,7 +60,11 @@ where
 
         if valid {
             Ok(AuthGroupOutput {
-                token: "".to_string(),
+                token: self
+                    .auth
+                    .token(&group)
+                    .await
+                    .map_err(|_| AuthGroupError::GenTokenError)?,
             })
         } else {
             Err(AuthGroupError::WrongPassword)
