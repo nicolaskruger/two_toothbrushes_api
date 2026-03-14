@@ -4,6 +4,7 @@ use crate::insfractuture::http::pix_controller::pix_ccontroller_factor;
 
 pub mod config;
 pub mod http;
+pub mod init;
 pub mod persistence;
 pub mod security;
 

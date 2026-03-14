@@ -16,7 +16,7 @@ pub struct CreateGroupOutput {
     pub id: Uuid,
 }
 
-pub struct CreateUserCase<R, H>
+pub struct CreateGroupCase<R, H>
 where
     R: GroupRepository,
     H: PasswordHasher,
@@ -25,7 +25,7 @@ where
     hasher: H,
 }
 
-impl<R, H> CreateUserCase<R, H>
+impl<R, H> CreateGroupCase<R, H>
 where
     R: GroupRepository,
     H: PasswordHasher,
@@ -85,7 +85,7 @@ mod tests {
 
         let hasher = Aragon2PasswordHash {};
 
-        let mut case = CreateUserCase::new(repo, hasher);
+        let mut case = CreateGroupCase::new(repo, hasher);
 
         case.execute(input).await.expect("error");
 
