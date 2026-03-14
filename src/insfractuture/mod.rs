@@ -1,6 +1,8 @@
 use actix_web::web;
 
-use crate::insfractuture::http::pix_controller::pix_ccontroller_factor;
+use crate::insfractuture::http::{
+    auth_controller::auth_ccontroller_factor, pix_controller::pix_ccontroller_factor,
+};
 
 pub mod config;
 pub mod http;
@@ -11,4 +13,5 @@ pub mod security;
 
 pub fn controller_factory(conf: &mut web::ServiceConfig) {
     pix_ccontroller_factor(conf);
+    auth_ccontroller_factor(conf);
 }

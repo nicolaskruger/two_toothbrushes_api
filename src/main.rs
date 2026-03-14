@@ -1,4 +1,4 @@
-use actix_web::{App, HttpServer};
+use actix_web::{App, HttpServer, web};
 use dotenv::dotenv;
 use sqlx::postgres::PgPoolOptions;
 use two_toothbrushes_api::insfractuture::{
@@ -25,8 +25,12 @@ async fn main() -> std::io::Result<()> {
 
     init_container(pool.clone()).await;
 
-    HttpServer::new(|| App::new().configure(controller_factory))
-        .bind(("127.0.0.1", 8080))?
-        .run()
-        .await
+    HttpServer::new(move || {
+        App::new()
+            .app_data(web::Data::new(pool.clone()))
+            .configure(controller_factory)
+    })
+    .bind(("127.0.0.1", 8080))?
+    .run()
+    .await
 }

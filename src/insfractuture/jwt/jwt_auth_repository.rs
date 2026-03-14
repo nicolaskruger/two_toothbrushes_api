@@ -2,10 +2,7 @@ use chrono::{Duration, Utc};
 use jsonwebtoken::{EncodingKey, Header, encode};
 
 use crate::domain::{
-    entities::{
-        claim::{self, Claim},
-        group::Group,
-    },
+    entities::{claim::Claim, group::Group},
     repository::auth_repository::{AuthRepository, AuthRepositoryError},
 };
 
@@ -14,7 +11,7 @@ pub struct JwtAuthRepository {
 }
 
 impl JwtAuthRepository {
-    fn new(self, secret: String) -> Self {
+    pub fn new(secret: String) -> Self {
         Self { secret }
     }
 }
@@ -31,11 +28,13 @@ impl AuthRepository for JwtAuthRepository {
             exp,
         };
 
-        Ok(encode(
+        let out = encode(
             &Header::default(),
             &claim,
             &EncodingKey::from_secret(self.secret.as_ref()),
         )
-        .map_err(|_| AuthRepositoryError::GenTokenError)?)
+        .map_err(|_| AuthRepositoryError::GenTokenError)?;
+
+        Ok(out)
     }
 }
