@@ -32,6 +32,6 @@ mod tests {
 
         dotenv().expect("something whet wrong loading env variables");
 
-        // Settings::load();
+        Settings::load();
     }
 }
