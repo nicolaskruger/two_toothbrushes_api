@@ -46,6 +46,20 @@ impl PostgresqlGroupRepository {
         Ok(())
     }
 
+    async fn _find_by_name(&mut self, name: String) -> Result<GroupRow, sqlx::Error> {
+        let group = query_as!(
+            GroupRow,
+            r#"
+            select * from groups where name = $1
+            "#,
+            name,
+        )
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(group)
+    }
+
     async fn _find_by_id(&mut self, id: Uuid) -> Result<GroupRow, sqlx::Error> {
         let group = query_as!(
             GroupRow,
@@ -88,6 +102,17 @@ impl GroupRepository for PostgresqlGroupRepository {
     ) -> Result<Group, GroupRepositoryError> {
         let group_row = self
             ._find_by_id(id.as_uuid())
+            .await
+            .map_err(|_| GroupRepositoryError::NotFound)?;
+
+        let group: Group = group_row.into();
+
+        Ok(group)
+    }
+
+    async fn find_by_name(&mut self, name: String) -> Result<Group, GroupRepositoryError> {
+        let group_row = self
+            ._find_by_name(name)
             .await
             .map_err(|_| GroupRepositoryError::NotFound)?;
 
@@ -179,6 +204,30 @@ mod tests {
         let id = GroupId::from_uuid(uuid);
 
         let group = repo.find_by_id(&id).await.expect("fetched");
+
+        print!("{:#?}", group);
+    }
+
+    #[tokio::test]
+    #[ignore = "database test"]
+    async fn postgresql_find_by_name_test() {
+        // cargo test postgresql_find_by_name_test -- --ignored --nocapture
+        //a0a4e7cc-aca4-4865-ae08-70d04cea1ed4
+        dotenv().ok();
+        let settings = Settings::load();
+
+        let pool = PgPoolOptions::new()
+            .max_connections(10)
+            .connect(&settings.postgresql_url)
+            .await
+            .expect("not connected");
+
+        let mut repo = PostgresqlGroupRepository::new(pool);
+
+        let group = repo
+            .find_by_name("Pai e Mãe".to_string())
+            .await
+            .expect("fetched");
 
         print!("{:#?}", group);
     }

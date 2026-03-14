@@ -41,6 +41,10 @@ impl GroupRepository for MemoryGroupRepository {
 
         Ok(group.clone())
     }
+
+    async fn find_by_name(&mut self, _: String) -> Result<Group, GroupRepositoryError> {
+        todo!()
+    }
 }
 
 #[cfg(test)]
