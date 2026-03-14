@@ -2240,6 +2240,7 @@ dependencies = [
  "password-hash",
  "rand_core 0.10.0",
  "serde",
+ "serde_json",
  "sqlx",
  "tokio",
  "uuid",
