@@ -2,6 +2,7 @@ use crate::domain::entities::group::Group;
 use crate::domain::entities::user::User;
 use crate::domain::value_object::group_id::GroupId;
 use crate::domain::value_object::hashed_password::HashedPassword;
+use crate::domain::value_object::user_id::UserId;
 use crate::insfractuture::persistence::models::group_row::GroupRow;
 use crate::insfractuture::persistence::models::user_row::UserRow;
 
@@ -23,6 +24,30 @@ impl From<GroupRow> for Group {
             group.name.clone(),
             HashedPassword::new(group.password.clone()),
             group.created_at,
+        )
+    }
+}
+
+impl From<&UserRow> for User {
+    fn from(user: &UserRow) -> Self {
+        User::reconstitute(
+            UserId::from_uuid(user.id),
+            user.name.clone(),
+            user.is_confirm,
+            GroupId::from_uuid(user.group_id),
+            user.created_at,
+        )
+    }
+}
+
+impl From<UserRow> for User {
+    fn from(user: UserRow) -> Self {
+        User::reconstitute(
+            UserId::from_uuid(user.id),
+            user.name.clone(),
+            user.is_confirm,
+            GroupId::from_uuid(user.group_id),
+            user.created_at,
         )
     }
 }

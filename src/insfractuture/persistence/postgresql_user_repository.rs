@@ -1,7 +1,11 @@
-use sqlx::{PgPool, query, query_scalar};
+use sqlx::{PgPool, query, query_as, query_scalar};
+use uuid::Uuid;
 
 use crate::{
-    domain::repository::user_repository::{UserRepository, UserRepositoryError},
+    domain::{
+        entities::user::User,
+        repository::user_repository::{UserRepository, UserRepositoryError},
+    },
     insfractuture::persistence::models::user_row::UserRow,
 };
 
@@ -42,6 +46,20 @@ impl PostgresqlUserRepository {
 
         Ok(())
     }
+
+    async fn _find_by_group(&mut self, id: Uuid) -> Result<Vec<UserRow>, sqlx::Error> {
+        let users = query_as!(
+            UserRow,
+            r#"
+            select * from users where group_id = $1
+            "#,
+            id,
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(users)
+    }
 }
 
 impl UserRepository for PostgresqlUserRepository {
@@ -66,10 +84,25 @@ impl UserRepository for PostgresqlUserRepository {
 
         Ok(count)
     }
+
+    async fn find_by_group(
+        &mut self,
+        group_id: &crate::domain::value_object::group_id::GroupId,
+    ) -> Result<Vec<User>, UserRepositoryError> {
+        let user_rows = self
+            ._find_by_group(group_id.as_uuid())
+            .await
+            .map_err(|_| UserRepositoryError::SQLError)?;
+
+        let users: Vec<_> = user_rows.iter().map(|r| r.into()).collect();
+
+        Ok(users)
+    }
 }
 
 #[cfg(test)]
 mod tests {
+
     use chrono::Utc;
     use dotenv::dotenv;
     use sqlx::postgres::PgPoolOptions;
@@ -123,5 +156,30 @@ mod tests {
         let count = repo.count().await.expect("no error");
 
         assert_eq!(count, 0);
+    }
+
+    #[tokio::test]
+    #[ignore = "database test"]
+    async fn postgresql_user_repository_find_by_group_id_test() {
+        // cargo test postgresql_user_repository_find_by_group_id_test -- --ignored --nocapture
+        dotenv().ok();
+        let settings = Settings::load();
+
+        let pool = PgPoolOptions::new()
+            .max_connections(10)
+            .connect(&settings.postgresql_url)
+            .await
+            .expect("not connected");
+
+        let mut repo = PostgresqlUserRepository::new(pool);
+
+        let group_id =
+            GroupId::from_uuid(Uuid::parse_str("8a20b54e-2df4-4bde-b00a-d344b12ac789").unwrap());
+
+        let users = repo.find_by_group(&group_id).await.expect("error");
+
+        for user in users {
+            println!("{}", user.name());
+        }
     }
 }

@@ -27,6 +27,22 @@ impl User {
         }
     }
 
+    pub fn reconstitute(
+        id: UserId,
+        name: String,
+        is_confirm: bool,
+        group_id: GroupId,
+        created_at: DateTime<Utc>,
+    ) -> Self {
+        Self {
+            id,
+            name,
+            is_confirm,
+            group_id,
+            created_at,
+        }
+    }
+
     pub fn id(&self) -> &UserId {
         &self.id
     }

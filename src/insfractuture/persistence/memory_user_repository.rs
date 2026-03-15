@@ -23,6 +23,13 @@ impl UserRepository for MemoryUserRepository {
         let users = self.users.lock().unwrap();
         Ok(users.len() as i64)
     }
+
+    async fn find_by_group(
+        &mut self,
+        _: &crate::domain::value_object::group_id::GroupId,
+    ) -> Result<Vec<User>, UserRepositoryError> {
+        todo!()
+    }
 }
 
 #[cfg(test)]
