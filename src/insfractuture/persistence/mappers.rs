@@ -27,7 +27,14 @@ impl FromRequest for GroupId {
         async fn _from_request(req: actix_web::HttpRequest) -> Result<GroupId, Error> {
             let token = req.headers().get("Authorization");
             let token = token.ok_or(t_err())?;
-            let token = token.to_str().map_err(|_| t_err())?.to_string();
+            let token = token
+                .to_str()
+                .map_err(|_| t_err())?
+                .strip_prefix("Bearer")
+                .ok_or(t_err())?
+                .trim()
+                .to_string();
+
             let settings = Settings::load();
             let mut repo = JwtAuthRepository::new(settings.auth_secret);
             let group_id = repo.group_id(token).await.map_err(|_| t_err())?;
