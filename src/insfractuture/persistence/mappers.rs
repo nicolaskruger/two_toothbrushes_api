@@ -1,10 +1,43 @@
+use std::pin::Pin;
+
+use actix_web::{Error, FromRequest};
+
 use crate::domain::entities::group::Group;
 use crate::domain::entities::user::User;
+use crate::domain::repository::auth_repository::AuthRepository;
 use crate::domain::value_object::group_id::GroupId;
 use crate::domain::value_object::hashed_password::HashedPassword;
 use crate::domain::value_object::user_id::UserId;
+use crate::insfractuture::config::settings::Settings;
+use crate::insfractuture::jwt::jwt_auth_repository::JwtAuthRepository;
 use crate::insfractuture::persistence::models::group_row::GroupRow;
 use crate::insfractuture::persistence::models::user_row::UserRow;
+
+impl FromRequest for GroupId {
+    type Error = Error;
+
+    type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
+
+    fn from_request(req: &actix_web::HttpRequest, _: &mut actix_web::dev::Payload) -> Self::Future {
+        let req = req.clone();
+        fn t_err() -> Error {
+            actix_web::error::ErrorUnauthorized("Invalid token")
+        }
+
+        async fn _from_request(req: actix_web::HttpRequest) -> Result<GroupId, Error> {
+            let token = req.headers().get("Authorization");
+            let token = token.ok_or(t_err())?;
+            let token = token.to_str().map_err(|_| t_err())?.to_string();
+            let settings = Settings::load();
+            let mut repo = JwtAuthRepository::new(settings.auth_secret);
+            let group_id = repo.group_id(token).await.map_err(|_| t_err())?;
+
+            Ok(group_id.clone())
+        }
+
+        Box::pin(async move { _from_request(req).await })
+    }
+}
 
 impl From<&Group> for GroupRow {
     fn from(group: &Group) -> Self {
