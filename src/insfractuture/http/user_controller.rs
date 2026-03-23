@@ -85,4 +85,5 @@ pub async fn confirm_user_rest(
 
 pub fn user_ccontroller_factor(conf: &mut web::ServiceConfig) {
     conf.service(user_info);
+    conf.service(confirm_user_rest);
 }
