@@ -2,9 +2,7 @@ use actix_web::{HttpResponse, Responder, get, web};
 use sqlx::PgPool;
 
 use crate::{
-    app::use_case::find_user_by_group_id::{
-        FindUsersByGroupIdCase, FindUsersByGroupIdInput, FindUsersByGroupIdOutput,
-    },
+    app::use_case::find_user_by_group_id::{FindUsersByGroupIdCase, FindUsersByGroupIdInput},
     domain::value_object::group_id::GroupId,
     insfractuture::{
         http::dto::user_info_response::UserInfoResponse,
