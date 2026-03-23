@@ -3,11 +3,11 @@ use crate::domain::{
     value_object::group_id::GroupId,
 };
 
-pub struct FindUserByGroupIdInput {
+pub struct FindUsersByGroupIdInput {
     pub group_id: GroupId,
 }
 
-pub struct FindUserByGroupIdOutput {
+pub struct FindUsersByGroupIdOutput {
     pub users: Vec<User>,
 }
 
@@ -15,14 +15,14 @@ pub enum FindUserByGroupIdError {
     ThisGroupNotExists,
 }
 
-pub struct FindUserByGroupIdCase<R>
+pub struct FindUsersByGroupIdCase<R>
 where
     R: UserRepository,
 {
     repository: R,
 }
 
-impl<R> FindUserByGroupIdCase<R>
+impl<R> FindUsersByGroupIdCase<R>
 where
     R: UserRepository,
 {
@@ -32,15 +32,15 @@ where
 
     pub async fn execute(
         &mut self,
-        input: FindUserByGroupIdInput,
-    ) -> Result<FindUserByGroupIdOutput, FindUserByGroupIdError> {
+        input: FindUsersByGroupIdInput,
+    ) -> Result<FindUsersByGroupIdOutput, FindUserByGroupIdError> {
         let users = self
             .repository
             .find_by_group(&input.group_id)
             .await
             .map_err(|_| FindUserByGroupIdError::ThisGroupNotExists)?;
 
-        let output = FindUserByGroupIdOutput { users };
+        let output = FindUsersByGroupIdOutput { users };
 
         Ok(output)
     }
