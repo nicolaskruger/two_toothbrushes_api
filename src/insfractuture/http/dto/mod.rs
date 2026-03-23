@@ -1,6 +1,8 @@
 pub mod auth_error;
 pub mod auth_request;
 pub mod auth_response;
+pub mod confirm_user_request;
+pub mod confirm_user_response;
 pub mod create_payment_request;
 pub mod group_info_response;
 pub mod user_info_response;
