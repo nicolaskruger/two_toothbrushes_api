@@ -47,6 +47,26 @@ impl PostgresqlUserRepository {
         Ok(())
     }
 
+    async fn _update(&mut self, user_row: &UserRow) -> Result<(), sqlx::Error> {
+        query!(
+            r#"
+                UPDATE users
+                SET name = $2,
+                    is_confirm = $3,
+                    group_id = $4
+                WHERE id = $1;
+            "#,
+            user_row.id,
+            user_row.name,
+            user_row.is_confirm,
+            user_row.group_id
+        )
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
     async fn _find_by_group(&mut self, id: Uuid) -> Result<Vec<UserRow>, sqlx::Error> {
         let users = query_as!(
             UserRow,
@@ -97,6 +117,16 @@ impl UserRepository for PostgresqlUserRepository {
         let users: Vec<_> = user_rows.iter().map(|r| r.into()).collect();
 
         Ok(users)
+    }
+
+    async fn update_user(&mut self, user: &User) -> Result<(), UserRepositoryError> {
+        let user_row: UserRow = user.into();
+
+        self._update(&user_row)
+            .await
+            .map_err(|_| UserRepositoryError::CouldNotUpdate)?;
+
+        Ok(())
     }
 }
 

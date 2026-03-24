@@ -5,6 +5,7 @@ use crate::domain::{
     repository::user_repository::{UserRepository, UserRepositoryError},
 };
 
+#[derive(Clone)]
 pub struct MemoryUserRepository {
     pub users: Arc<Mutex<Vec<User>>>,
 }
@@ -28,6 +29,10 @@ impl UserRepository for MemoryUserRepository {
         &mut self,
         _: &crate::domain::value_object::group_id::GroupId,
     ) -> Result<Vec<User>, UserRepositoryError> {
+        todo!()
+    }
+
+    async fn update_user(&mut self, _: &User) -> Result<(), UserRepositoryError> {
         todo!()
     }
 }

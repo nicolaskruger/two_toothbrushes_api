@@ -52,7 +52,7 @@ where
 
         let hash_map: HashMap<_, _> = input.users.iter().map(|u| (u.id, u)).collect();
 
-        let users = users
+        let users: Vec<_> = users
             .iter()
             .filter(|u| hash_map.contains_key(&u.id().as_uuid()))
             .map(|u| {
@@ -65,6 +65,10 @@ where
                 )
             })
             .collect();
+
+        for user in users.clone() {
+            let _ = self.repository.update_user(&user).await;
+        }
 
         let output = ConfirmUsersOutput { users };
 
