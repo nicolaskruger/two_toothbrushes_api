@@ -1,7 +1,7 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, Serialize)]
 pub struct CreatePaymentResponse {
     pub amount: f64,
     pub qr_code: String,

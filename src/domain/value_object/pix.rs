@@ -13,15 +13,15 @@ impl Pix {
         }
     }
 
-    pub fn amount(self) -> f64 {
+    pub fn amount(&self) -> f64 {
         self.amount
     }
 
-    pub fn qr_code(self) -> String {
+    pub fn qr_code(&self) -> String {
         self.qr_code.clone()
     }
 
-    pub fn qr_code_base64(self) -> String {
+    pub fn qr_code_base64(&self) -> String {
         self.qr_code_base64.clone()
     }
 }

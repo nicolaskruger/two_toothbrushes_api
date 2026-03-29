@@ -1,8 +1,5 @@
-use chrono::Utc;
-
 use crate::domain::{
-    entities::user::User,
-    repository::{group_repository::GroupRepository, user_repository::UserRepository},
+    repository::pix_repository::PixRepository,
     value_object::{group_id::GroupId, pix::Pix},
 };
 
@@ -15,54 +12,35 @@ pub struct CreatePixOutput {
     pub pix: Pix,
 }
 
-pub struct CreatePixCase<RG, RU>
+pub struct CreatePixCase<PG>
 where
-    RG: GroupRepository,
-    RU: UserRepository,
+    PG: PixRepository,
 {
-    group_repossitor: RG,
-    user_repossitor: RU,
+    pix_repository: PG,
 }
 
 #[derive(Debug, PartialEq)]
 pub enum CreatePixError {
-    GroupNotFound,
     CouldNotCreate,
 }
 
-impl<RG, RU> CreatePixCase<RG, RU>
+impl<PG> CreatePixCase<PG>
 where
-    RG: GroupRepository,
-    RU: UserRepository,
+    PG: PixRepository,
 {
-    pub fn new(group_repossitor: RG, user_repossitor: RU) -> Self {
-        Self {
-            group_repossitor,
-            user_repossitor,
-        }
+    pub fn new(pix_repository: PG) -> Self {
+        Self { pix_repository }
     }
     pub async fn execute(
         &mut self,
         input: CreatePixInput,
     ) -> Result<CreatePixOutput, CreatePixError> {
-        todo!()
-        // let _ = self
-        //     .group_repossitor
-        //     .find_by_id(&GroupId::from_uuid(input.id_group))
-        //     .await
-        //     .map_err(|_| CreatePixError::GroupNotFound)?;
-        //
-        // let group_id = GroupId::from_uuid(input.id_group);
-        //
-        // let user = User::create(input.name.to_string(), false, group_id, Utc::now());
-        //
-        // self.user_repossitor
-        //     .create_user(&user)
-        //     .await
-        //     .map_err(|_| CreatePixError::CouldNotCreate)?;
-        //
-        // Ok(CreatePixOutput {
-        //     id: user.id().as_uuid(),
-        // })
+        let pix = self
+            .pix_repository
+            .create_pix(input.amount)
+            .await
+            .map_err(|_| CreatePixError::CouldNotCreate)?;
+
+        Ok(CreatePixOutput { pix })
     }
 }
