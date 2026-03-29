@@ -6,6 +6,7 @@ pub struct Settings {
     pub postgresql_url: String,
     pub group_list: Vec<EnvGroup>,
     pub auth_secret: String,
+    pub payment_token: String,
 }
 
 impl Settings {
@@ -17,6 +18,7 @@ impl Settings {
                 .and_then(|e| serde_json::from_str(&e).map_err(|e| e.to_string()))
                 .expect("not set GROUP_LIST"),
             auth_secret: env::var("AUTH_SECRET").expect("not set AUTH_SECRET"),
+            payment_token: env::var("PAYMENT_TOKEN").expect("not set PAYMENT_TOKEN"),
         }
     }
 }
