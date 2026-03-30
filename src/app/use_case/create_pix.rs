@@ -1,6 +1,6 @@
 use crate::domain::{
-    repository::pix_repository::PixRepository,
-    value_object::{group_id::GroupId, pix::Pix},
+    repository::pix_client_repository::PixClientRepository,
+    value_object::{group_id::GroupId, pix_response::PixResponse},
 };
 
 pub struct CreatePixInput {
@@ -9,12 +9,12 @@ pub struct CreatePixInput {
 }
 
 pub struct CreatePixOutput {
-    pub pix: Pix,
+    pub pix: PixResponse,
 }
 
 pub struct CreatePixCase<PG>
 where
-    PG: PixRepository,
+    PG: PixClientRepository,
 {
     pix_repository: PG,
 }
@@ -26,7 +26,7 @@ pub enum CreatePixError {
 
 impl<PG> CreatePixCase<PG>
 where
-    PG: PixRepository,
+    PG: PixClientRepository,
 {
     pub fn new(pix_repository: PG) -> Self {
         Self { pix_repository }

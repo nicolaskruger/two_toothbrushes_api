@@ -1,0 +1,24 @@
+use uuid::Uuid;
+
+#[derive(Clone, Debug)]
+pub struct PixId(uuid::Uuid);
+
+impl PixId {
+    pub fn new() -> Self {
+        Self(Uuid::new_v4())
+    }
+
+    pub fn from_uuid(uuid: Uuid) -> Self {
+        Self(uuid)
+    }
+
+    pub fn as_uuid(&self) -> Uuid {
+        self.0
+    }
+}
+
+impl Default for PixId {
+    fn default() -> Self {
+        Self::new()
+    }
+}

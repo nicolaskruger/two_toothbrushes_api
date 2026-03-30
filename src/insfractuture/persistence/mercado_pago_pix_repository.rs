@@ -3,9 +3,8 @@ use serde_json::json;
 use uuid::Uuid;
 
 use crate::domain::{
-    entities::payment::Payment,
-    repository::pix_repository::{PixError, PixRepository},
-    value_object::pix::Pix,
+    repository::pix_client_repository::{PixClientError, PixClientRepository},
+    value_object::pix_response::PixResponse,
 };
 
 pub struct MercadoPagoPixRepository {
@@ -30,18 +29,14 @@ struct PointOfInteraction {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
-struct PixResponse {
+struct MercadoPagoPixResponse {
     pub point_of_interaction: PointOfInteraction,
 }
 
-impl PixRepository for MercadoPagoPixRepository {
-    async fn register_payment(&mut self, _: Payment) -> Result<(), PixError> {
-        todo!()
-    }
-
-    async fn create_pix(&mut self, amount: f64) -> Result<Pix, PixError> {
+impl PixClientRepository for MercadoPagoPixRepository {
+    async fn create_pix(&mut self, amount: f64) -> Result<PixResponse, PixClientError> {
         if amount <= 0. {
-            Err(PixError::LessOrEqualZero)
+            Err(PixClientError::LessOrEqualZero)
         } else {
             let client = reqwest::Client::new();
 
@@ -54,7 +49,8 @@ impl PixRepository for MercadoPagoPixRepository {
                 }
             });
 
-            let key = Uuid::new_v4().to_string();
+            let id = Uuid::new_v4();
+            let key = id.to_string();
 
             let res = client
                 .post("https://api.mercadopago.com/v1/payments")
@@ -63,12 +59,20 @@ impl PixRepository for MercadoPagoPixRepository {
                 .header("X-Idempotency-Key", key)
                 .send()
                 .await
-                .map_err(|_| PixError::GatewayError)?;
+                .map_err(|_| PixClientError::GatewayError)?;
 
-            let res: PixResponse = res.json().await.map_err(|_| PixError::JsonParserError)?;
+            let res: MercadoPagoPixResponse = res
+                .json()
+                .await
+                .map_err(|_| PixClientError::JsonParserError)?;
             let res = res.point_of_interaction.transaction_data;
 
-            Ok(Pix::new(amount, res.qr_code, res.qr_code_base64))
+            Ok(PixResponse::new(
+                amount,
+                res.qr_code,
+                res.qr_code_base64,
+                id,
+            ))
         }
     }
 }
@@ -91,10 +95,10 @@ mod tests {
         let mut repo = MercadoPagoPixRepository::new(settings.payment_token);
 
         let err = repo.create_pix(-1.).await.unwrap_err();
-        assert_eq!(err, PixError::LessOrEqualZero);
+        assert_eq!(err, PixClientError::LessOrEqualZero);
 
         let err = repo.create_pix(0.).await.unwrap_err();
-        assert_eq!(err, PixError::LessOrEqualZero);
+        assert_eq!(err, PixClientError::LessOrEqualZero);
     }
 
     #[tokio::test]
