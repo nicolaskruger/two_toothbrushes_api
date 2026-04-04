@@ -1,6 +1,11 @@
+use chrono::Utc;
+
 use crate::domain::{
-    repository::pix_client_repository::PixClientRepository,
-    value_object::{group_id::GroupId, pix_response::PixResponse},
+    repository::{pix_client_repository::PixClientRepository, pix_repository::PixRepository},
+    value_object::{
+        group_id::GroupId, pix::Pix, pix_id::PixId, pix_response::PixResponse,
+        pix_status::PixStatus,
+    },
 };
 
 pub struct CreatePixInput {
@@ -12,35 +17,59 @@ pub struct CreatePixOutput {
     pub pix: PixResponse,
 }
 
-pub struct CreatePixCase<PG>
+pub struct CreatePixCase<PC, PR>
 where
-    PG: PixClientRepository,
+    PC: PixClientRepository,
+    PR: PixRepository,
 {
-    pix_repository: PG,
+    pix_client_repository: PC,
+    pix_repository: PR,
 }
 
 #[derive(Debug, PartialEq)]
 pub enum CreatePixError {
     CouldNotCreate,
+    CouldNotRegister,
 }
 
-impl<PG> CreatePixCase<PG>
+impl<PC, PR> CreatePixCase<PC, PR>
 where
-    PG: PixClientRepository,
+    PC: PixClientRepository,
+    PR: PixRepository,
 {
-    pub fn new(pix_repository: PG) -> Self {
-        Self { pix_repository }
+    pub fn new(pix_client_repository: PC, pix_repository: PR) -> Self {
+        Self {
+            pix_client_repository,
+            pix_repository,
+        }
     }
     pub async fn execute(
         &mut self,
         input: CreatePixInput,
     ) -> Result<CreatePixOutput, CreatePixError> {
-        let pix = self
-            .pix_repository
+        let pix_response = self
+            .pix_client_repository
             .create_pix(input.amount)
             .await
             .map_err(|_| CreatePixError::CouldNotCreate)?;
 
-        Ok(CreatePixOutput { pix })
+        let pix_id = PixId::from_uuid(pix_response.id());
+
+        let pix = Pix::new(
+            pix_response.amount(),
+            pix_response.qr_code(),
+            pix_response.qr_code_base64(),
+            input.group_id.clone(),
+            pix_id,
+            PixStatus::Pending,
+            Utc::now(),
+        );
+
+        self.pix_repository
+            .create_pix(pix.clone())
+            .await
+            .map_err(|_| CreatePixError::CouldNotRegister)?;
+
+        Ok(CreatePixOutput { pix: pix_response })
     }
 }
