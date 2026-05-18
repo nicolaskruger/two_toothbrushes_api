@@ -51,6 +51,7 @@ impl From<&Group> for GroupRow {
         Self {
             id: group.id().as_uuid(),
             name: group.name().to_string(),
+            code: group.code().to_string(),
             password: group.password().as_str().to_string(),
             created_at: group.created_at(),
         }
@@ -62,6 +63,7 @@ impl From<GroupRow> for Group {
         Group::reconstitute(
             GroupId::from_uuid(group.id),
             group.name.clone(),
+            group.code.clone(),
             HashedPassword::new(group.password.clone()),
             group.created_at,
         )

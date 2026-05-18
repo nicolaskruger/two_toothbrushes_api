@@ -21,6 +21,7 @@ pub async fn init_group<RG: GroupRepository, RU: UserRepository, H: PasswordHash
         for gp in settings.group_list.iter().clone() {
             let group = CreateGroupInput {
                 name: gp.name.clone(),
+                code: gp.code.clone(),
                 password: gp.password.clone(),
             };
 

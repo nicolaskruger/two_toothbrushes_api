@@ -135,7 +135,7 @@ mod tests {
 
         let group_password = hasher.hash("passwod").unwrap();
 
-        let group = Group::create("group".to_string(), group_password, Utc::now());
+        let group = Group::create("group".to_string(), "code".to_string(), group_password, Utc::now());
 
         g_repo.create(&group).await.expect("");
 

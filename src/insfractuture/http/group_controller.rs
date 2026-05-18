@@ -24,6 +24,7 @@ pub async fn group_info(group_id: GroupId, pool: web::Data<PgPool>) -> impl Resp
             let response = GroupInfoResponse {
                 id: output.group.id().as_uuid(),
                 name: output.group.name().to_string(),
+                code: output.group.code().to_string(),
             };
             HttpResponse::Ok().json(response)
         }

@@ -9,6 +9,7 @@ use crate::domain::{
 
 pub struct CreateGroupInput {
     pub name: String,
+    pub code: String,
     pub password: String,
 }
 
@@ -40,7 +41,7 @@ where
             .hash(&input.password)
             .expect("can't hash password");
 
-        let group = Group::create(input.name.clone(), password, Utc::now());
+        let group = Group::create(input.name.clone(), input.code.clone(), password, Utc::now());
 
         self.repository
             .create(&group)
@@ -74,6 +75,7 @@ mod tests {
         // cargo test create_user_test
         let input = CreateGroupInput {
             name: "name".to_string(),
+            code: "code".to_string(),
             password: "pass".to_string(),
         };
 

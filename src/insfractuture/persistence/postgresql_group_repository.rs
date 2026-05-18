@@ -33,11 +33,12 @@ impl PostgresqlGroupRepository {
     async fn _create(&mut self, group: &GroupRow) -> Result<(), sqlx::Error> {
         query!(
             r#"
-                INSERT INTO groups (id, name, password)
-                VALUES ($1, $2, $3);
+                INSERT INTO groups (id, name, code, password)
+                VALUES ($1, $2, $3, $4);
             "#,
             group.id,
             group.name,
+            group.code,
             group.password
         )
         .execute(&self.pool)
@@ -174,6 +175,7 @@ mod tests {
 
         let group = Group::create(
             "name".to_string(),
+            "code".to_string(),
             HashedPassword::new("password".to_string()),
             Utc::now(),
         );

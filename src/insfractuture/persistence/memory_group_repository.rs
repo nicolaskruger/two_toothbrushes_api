@@ -78,6 +78,7 @@ mod tests {
 
         let group = Group::create(
             "name".to_string(),
+            "code".to_string(),
             HashedPassword::new("password".to_string()),
             Utc::now(),
         );
@@ -99,6 +100,7 @@ mod tests {
 
         let group = Group::create(
             "name".to_string(),
+            "code".to_string(),
             HashedPassword::new("password".to_string()),
             Utc::now(),
         );

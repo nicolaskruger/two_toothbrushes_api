@@ -5,4 +5,5 @@ use uuid::Uuid;
 pub struct GroupInfoResponse {
     pub id: Uuid,
     pub name: String,
+    pub code: String,
 }

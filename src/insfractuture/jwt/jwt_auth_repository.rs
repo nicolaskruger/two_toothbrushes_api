@@ -72,6 +72,7 @@ mod tests {
 
         let group = Group::create(
             "family".into(),
+            "code".into(),
             HashedPassword::new("password".into()),
             Utc::now(),
         );

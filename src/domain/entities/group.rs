@@ -6,6 +6,7 @@ use crate::domain::value_object::{group_id::GroupId, hashed_password::HashedPass
 pub struct Group {
     id: GroupId,
     name: String,
+    code: String,
     password: HashedPassword,
     created_at: DateTime<Utc>,
 }
@@ -14,20 +15,23 @@ impl Group {
     pub fn reconstitute(
         id: GroupId,
         name: String,
+        code: String,
         password: HashedPassword,
         created_at: DateTime<Utc>,
     ) -> Self {
         Self {
             id,
             name,
+            code,
             password,
             created_at,
         }
     }
-    pub fn create(name: String, password: HashedPassword, created_at: DateTime<Utc>) -> Self {
+    pub fn create(name: String, code: String, password: HashedPassword, created_at: DateTime<Utc>) -> Self {
         Self {
             id: GroupId::new(),
             name,
+            code,
             password,
             created_at,
         }
@@ -39,6 +43,10 @@ impl Group {
 
     pub fn name(&self) -> &str {
         &self.name
+    }
+
+    pub fn code(&self) -> &str {
+        &self.code
     }
 
     pub fn password(&self) -> &HashedPassword {
