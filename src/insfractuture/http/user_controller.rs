@@ -8,6 +8,7 @@ use crate::{
     },
     domain::value_object::group_id::GroupId,
     insfractuture::{
+        config::settings,
         http::dto::{
             confirm_user_request::ConfirmUserRequest, confirm_user_response::ConfirmUserResponse,
             user_info_response::UserInfoResponse,
@@ -61,7 +62,13 @@ pub async fn confirm_user_rest(
         })
         .collect();
 
-    let input = ConfirmUsersInput { group_id, users };
+    let settings = settings::Settings::load();
+
+    let input = ConfirmUsersInput {
+        group_id,
+        users,
+        confirm_limit: settings.confirm_limit,
+    };
 
     let result = confirm_user_case.execute(input).await;
 

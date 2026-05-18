@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::domain::{
@@ -15,6 +16,7 @@ pub struct ConfirmUser {
 pub struct ConfirmUsersInput {
     pub group_id: GroupId,
     pub users: Vec<ConfirmUser>,
+    pub confirm_limit: DateTime<Utc>,
 }
 
 pub struct ConfirmUsersOutput {
@@ -23,6 +25,7 @@ pub struct ConfirmUsersOutput {
 
 pub enum FindUserByGroupIdError {
     ThisGroupNotExists,
+    ExceedConfirmLimit,
 }
 
 pub struct ConfirmUsersCase<R>
@@ -44,6 +47,10 @@ where
         &mut self,
         input: ConfirmUsersInput,
     ) -> Result<ConfirmUsersOutput, FindUserByGroupIdError> {
+        if Utc::now() > input.confirm_limit {
+            return Err(FindUserByGroupIdError::ExceedConfirmLimit);
+        }
+
         let users = self
             .repository
             .find_by_group(&input.group_id)
