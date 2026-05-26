@@ -1,0 +1,30 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO pix (\n                    id,\n                    amount,\n                    qr_code,\n                    qr_code_base64,\n                    group_id,\n                    status,\n                    created_at\n                ) VALUES (\n                    $1, \n                    $2, \n                    $3, \n                    $4, \n                    $5, \n                    $6, \n                    $7  \n                );\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Float8",
+        "Text",
+        "Text",
+        "Uuid",
+        {
+          "Custom": {
+            "name": "pix_status",
+            "kind": {
+              "Enum": [
+                "PENDING",
+                "PAID"
+              ]
+            }
+          }
+        },
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "668c295953e9e1c506c4fbc01caddc80042d4107597e2e179ab0eb36c5488b19"
+}

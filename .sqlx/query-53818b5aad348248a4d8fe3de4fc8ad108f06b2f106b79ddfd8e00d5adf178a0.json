@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                UPDATE users\n                SET name = $2,\n                    is_confirm = $3,\n                    group_id = $4\n                WHERE id = $1;\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Bool",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "53818b5aad348248a4d8fe3de4fc8ad108f06b2f106b79ddfd8e00d5adf178a0"
+}

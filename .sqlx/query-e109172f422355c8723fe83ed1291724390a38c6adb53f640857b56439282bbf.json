@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            select * from groups where name = $1\n            ",
+  "query": "\n            select * from users where group_id = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -15,8 +15,8 @@
       },
       {
         "ordinal": 2,
-        "name": "password",
-        "type_info": "Text"
+        "name": "is_confirm",
+        "type_info": "Bool"
       },
       {
         "ordinal": 3,
@@ -25,13 +25,13 @@
       },
       {
         "ordinal": 4,
-        "name": "code",
-        "type_info": "Text"
+        "name": "group_id",
+        "type_info": "Uuid"
       }
     ],
     "parameters": {
       "Left": [
-        "Text"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -42,5 +42,5 @@
       false
     ]
   },
-  "hash": "a16e05e95314eaf5563e2e9371d686e48238c7a7ca5455833137992c3087547b"
+  "hash": "e109172f422355c8723fe83ed1291724390a38c6adb53f640857b56439282bbf"
 }
