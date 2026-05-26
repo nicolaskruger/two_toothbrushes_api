@@ -9,7 +9,7 @@ use two_toothbrushes_api::insfractuture::{
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    dotenv().expect("something whet wrong loading env variables");
+    dotenv().ok();
 
     migrate()
         .await
