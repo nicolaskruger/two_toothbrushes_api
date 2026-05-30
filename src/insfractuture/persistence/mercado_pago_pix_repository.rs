@@ -1,3 +1,4 @@
+use chrono::{Duration, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
@@ -40,10 +41,15 @@ impl PixClientRepository for MercadoPagoPixRepository {
         } else {
             let client = reqwest::Client::new();
 
+            let expiration = (Utc::now() + Duration::hours(24))
+                .format("%Y-%m-%dT%H:%M:%S%.3f-00:00")
+                .to_string();
+
             let payment_json = json!({
                 "transaction_amount": amount,
                 "description": "Presente de casamento",
                 "payment_method_id": "pix",
+                "date_of_expiration": expiration,
                 "payer": {
                     "email": "guest@example.com"
                 }
