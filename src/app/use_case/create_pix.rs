@@ -1,7 +1,10 @@
 use chrono::Utc;
 
 use crate::domain::{
-    repository::{pix_client_repository::PixClientRepository, pix_repository::PixRepository},
+    repository::{
+        pix_client_repository::{PixClientError, PixClientRepository},
+        pix_repository::PixRepository,
+    },
     value_object::{
         group_id::GroupId, pix::Pix, pix_id::PixId, pix_response::PixResponse,
         pix_status::PixStatus,
@@ -28,6 +31,7 @@ where
 
 #[derive(Debug, PartialEq)]
 pub enum CreatePixError {
+    InvalidAmount,
     CouldNotCreate,
     CouldNotRegister,
 }
@@ -51,7 +55,10 @@ where
             .pix_client_repository
             .create_pix(input.amount)
             .await
-            .map_err(|_| CreatePixError::CouldNotCreate)?;
+            .map_err(|e| match e {
+                PixClientError::LessOrEqualZero => CreatePixError::InvalidAmount,
+                _ => CreatePixError::CouldNotCreate,
+            })?;
 
         let pix_id = PixId::from_uuid(pix_response.id());
 

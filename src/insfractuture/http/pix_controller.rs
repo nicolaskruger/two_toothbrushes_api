@@ -2,7 +2,7 @@ use actix_web::{HttpResponse, Responder, post, web};
 use sqlx::PgPool;
 
 use crate::{
-    app::use_case::create_pix::{CreatePixCase, CreatePixInput},
+    app::use_case::create_pix::{CreatePixCase, CreatePixError, CreatePixInput},
     domain::value_object::group_id::GroupId,
     insfractuture::{
         config::settings::Settings,
@@ -47,7 +47,14 @@ async fn create(
 
             HttpResponse::Created().json(response)
         }
-        Err(_) => HttpResponse::BadRequest().finish(),
+        Err(e) => match e {
+                CreatePixError::InvalidAmount => HttpResponse::UnprocessableEntity()
+                    .json("O valor do pagamento deve ser maior que zero"),
+                CreatePixError::CouldNotCreate => HttpResponse::BadGateway()
+                    .json("Falha na comunicação com o gateway de pagamento"),
+                CreatePixError::CouldNotRegister => HttpResponse::InternalServerError()
+                    .json("Falha ao registrar o pagamento"),
+            },
     }
 }
 
