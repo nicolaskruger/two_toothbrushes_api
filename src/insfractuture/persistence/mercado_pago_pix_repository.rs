@@ -41,7 +41,7 @@ impl PixClientRepository for MercadoPagoPixRepository {
         } else {
             let client = reqwest::Client::new();
 
-            let expiration = (Utc::now() + Duration::hours(24))
+            let expiration = (Utc::now() + Duration::minutes(15))
                 .format("%Y-%m-%dT%H:%M:%S%.3f-00:00")
                 .to_string();
 
