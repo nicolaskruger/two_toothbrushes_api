@@ -35,6 +35,10 @@ impl UserRepository for MemoryUserRepository {
     async fn update_user(&mut self, _: &User) -> Result<(), UserRepositoryError> {
         todo!()
     }
+
+    async fn find_all(&mut self) -> Result<Vec<User>, UserRepositoryError> {
+        todo!()
+    }
 }
 
 #[cfg(test)]

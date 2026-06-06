@@ -6,7 +6,7 @@ use crate::{
         confirm_user::{ConfirmUser, ConfirmUsersCase, ConfirmUsersInput},
         find_user_by_group_id::{FindUsersByGroupIdCase, FindUsersByGroupIdInput},
     },
-    domain::value_object::group_id::GroupId,
+    domain::{repository::user_repository::UserRepository, value_object::group_id::GroupId},
     insfractuture::{
         config::settings,
         http::dto::{
@@ -16,6 +16,29 @@ use crate::{
         persistence::postgresql_user_repository::PostgresqlUserRepository,
     },
 };
+
+#[get("/user/all")]
+pub async fn user_all(pool: web::Data<PgPool>) -> impl Responder {
+    let mut user_repository = PostgresqlUserRepository::new(pool.get_ref().clone());
+
+    let result = user_repository.find_all().await;
+
+    match result {
+        Ok(output) => {
+            let users: Vec<_> = output
+                .iter()
+                .map(|u| UserInfoResponse {
+                    id: u.id().as_uuid(),
+                    name: u.name().to_string(),
+                    is_confirm: u.is_confirm(),
+                })
+                .collect();
+
+            HttpResponse::Ok().json(users)
+        }
+        Err(_) => HttpResponse::BadRequest().json("This user no longer exists"),
+    }
+}
 
 #[get("/user/mine")]
 pub async fn user_info(group_id: GroupId, pool: web::Data<PgPool>) -> impl Responder {
@@ -92,5 +115,6 @@ pub async fn confirm_user_rest(
 
 pub fn user_ccontroller_factor(conf: &mut web::ServiceConfig) {
     conf.service(user_info);
+    conf.service(user_all);
     conf.service(confirm_user_rest);
 }

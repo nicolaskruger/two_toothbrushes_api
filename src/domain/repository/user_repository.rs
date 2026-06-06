@@ -17,4 +17,5 @@ pub trait UserRepository {
         &mut self,
         group_id: &GroupId,
     ) -> impl Future<Output = Result<Vec<User>, UserRepositoryError>>;
+    fn find_all(&mut self) -> impl Future<Output = Result<Vec<User>, UserRepositoryError>>;
 }

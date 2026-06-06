@@ -80,6 +80,19 @@ impl PostgresqlUserRepository {
 
         Ok(users)
     }
+
+    async fn _find_all(&mut self) -> Result<Vec<UserRow>, sqlx::Error> {
+        let users = query_as!(
+            UserRow,
+            r#"
+            select * from users
+            "#,
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(users)
+    }
 }
 
 impl UserRepository for PostgresqlUserRepository {
@@ -111,6 +124,17 @@ impl UserRepository for PostgresqlUserRepository {
     ) -> Result<Vec<User>, UserRepositoryError> {
         let user_rows = self
             ._find_by_group(group_id.as_uuid())
+            .await
+            .map_err(|_| UserRepositoryError::SQLError)?;
+
+        let users: Vec<_> = user_rows.iter().map(|r| r.into()).collect();
+
+        Ok(users)
+    }
+
+    async fn find_all(&mut self) -> Result<Vec<User>, UserRepositoryError> {
+        let user_rows = self
+            ._find_all()
             .await
             .map_err(|_| UserRepositoryError::SQLError)?;
 
