@@ -1,9 +1,14 @@
-use crate::domain::{entities::user::User, value_object::group_id::GroupId};
+use crate::domain::{
+    entities::user::User,
+    value_object::{group_id::GroupId, user_id::UserId},
+};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum UserRepositoryError {
     CouldNotCreate,
     CouldNotUpdate,
+    CouldNotDelete,
+    NotFound,
     SQLError,
 }
 
@@ -12,7 +17,12 @@ pub trait UserRepository {
     -> impl Future<Output = Result<(), UserRepositoryError>>;
     fn update_user(&mut self, user: &User)
     -> impl Future<Output = Result<(), UserRepositoryError>>;
+    fn delete_user(&mut self, id: &UserId) -> impl Future<Output = Result<(), UserRepositoryError>>;
     fn count(&mut self) -> impl Future<Output = Result<i64, UserRepositoryError>>;
+    fn find_by_id(
+        &mut self,
+        id: &UserId,
+    ) -> impl Future<Output = Result<User, UserRepositoryError>>;
     fn find_by_group(
         &mut self,
         group_id: &GroupId,

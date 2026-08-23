@@ -1,9 +1,9 @@
-use actix_web::Error;
 use chrono::Utc;
 use uuid::Uuid;
 
 use crate::domain::{
-    entities::group::Group, repository::group_repository::GroupRepository,
+    entities::group::Group,
+    repository::group_repository::{GroupRepository, GroupRepositoryError},
     services::password_hasher::PasswordHasher,
 };
 
@@ -15,6 +15,14 @@ pub struct CreateGroupInput {
 
 pub struct CreateGroupOutput {
     pub id: Uuid,
+    pub group: Group,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum CreateGroupError {
+    DuplicatedCode,
+    CouldNotHashPassword,
+    CouldNotCreate,
 }
 
 pub struct CreateGroupCase<R, H>
@@ -35,21 +43,25 @@ where
         Self { repository, hasher }
     }
 
-    pub async fn execute(&mut self, input: CreateGroupInput) -> Result<CreateGroupOutput, Error> {
+    pub async fn execute(
+        &mut self,
+        input: CreateGroupInput,
+    ) -> Result<CreateGroupOutput, CreateGroupError> {
         let password = self
             .hasher
             .hash(&input.password)
-            .expect("can't hash password");
+            .map_err(|_| CreateGroupError::CouldNotHashPassword)?;
 
         let group = Group::create(input.name.clone(), input.code.clone(), password, Utc::now());
 
-        self.repository
-            .create(&group)
-            .await
-            .expect("can not insert group");
+        self.repository.create(&group).await.map_err(|e| match e {
+            GroupRepositoryError::CouldNotCreate => CreateGroupError::DuplicatedCode,
+            _ => CreateGroupError::CouldNotCreate,
+        })?;
 
         let output = CreateGroupOutput {
             id: group.id().as_uuid(),
+            group,
         };
 
         Ok(output)

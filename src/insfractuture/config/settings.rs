@@ -10,6 +10,7 @@ pub struct Settings {
     pub auth_secret: String,
     pub payment_token: String,
     pub confirm_limit: DateTime<Utc>,
+    pub api_key: String,
 }
 
 impl Settings {
@@ -26,6 +27,7 @@ impl Settings {
                 .expect("not set CONFIRM_LIMIT")
                 .parse::<DateTime<Utc>>()
                 .expect("CONFIRM_LIMIT must be a valid RFC3339 datetime"),
+            api_key: env::var("API_KEY").expect("not set API_KEY"),
         }
     }
 }

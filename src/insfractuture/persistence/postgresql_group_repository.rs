@@ -47,6 +47,60 @@ impl PostgresqlGroupRepository {
         Ok(())
     }
 
+    async fn _update(&mut self, group: &GroupRow) -> Result<(), sqlx::Error> {
+        let result = query!(
+            r#"
+                UPDATE groups
+                SET name = $2,
+                    code = $3,
+                    password = $4
+                WHERE id = $1;
+            "#,
+            group.id,
+            group.name,
+            group.code,
+            group.password
+        )
+        .execute(&self.pool)
+        .await?;
+
+        if result.rows_affected() == 0 {
+            return Err(sqlx::Error::RowNotFound);
+        }
+
+        Ok(())
+    }
+
+    async fn _delete(&mut self, id: Uuid) -> Result<(), sqlx::Error> {
+        let result = query!(
+            r#"
+                DELETE FROM groups WHERE id = $1;
+            "#,
+            id
+        )
+        .execute(&self.pool)
+        .await?;
+
+        if result.rows_affected() == 0 {
+            return Err(sqlx::Error::RowNotFound);
+        }
+
+        Ok(())
+    }
+
+    async fn _find_all(&mut self) -> Result<Vec<GroupRow>, sqlx::Error> {
+        let groups = query_as!(
+            GroupRow,
+            r#"
+            select * from groups
+            "#,
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(groups)
+    }
+
     async fn _find_by_name(&mut self, name: String) -> Result<GroupRow, sqlx::Error> {
         let group = query_as!(
             GroupRow,
@@ -91,9 +145,13 @@ impl GroupRepository for PostgresqlGroupRepository {
         group: &crate::domain::entities::group::Group,
     ) -> Result<(), GroupRepositoryError> {
         let grouo_row: GroupRow = group.into();
-        self._create(&grouo_row)
-            .await
-            .map_err(|_| GroupRepositoryError::SQLError)?;
+        self._create(&grouo_row).await.map_err(|e| match e {
+            // groups.code is UNIQUE
+            sqlx::Error::Database(e) if e.is_unique_violation() => {
+                GroupRepositoryError::CouldNotCreate
+            }
+            _ => GroupRepositoryError::SQLError,
+        })?;
         Ok(())
     }
 
@@ -120,6 +178,47 @@ impl GroupRepository for PostgresqlGroupRepository {
         let group: Group = group_row.into();
 
         Ok(group)
+    }
+
+    async fn update(
+        &mut self,
+        group: &crate::domain::entities::group::Group,
+    ) -> Result<(), GroupRepositoryError> {
+        let group_row: GroupRow = group.into();
+
+        self._update(&group_row).await.map_err(|e| match e {
+            sqlx::Error::RowNotFound => GroupRepositoryError::NotFound,
+            // groups.code is UNIQUE
+            sqlx::Error::Database(e) if e.is_unique_violation() => {
+                GroupRepositoryError::CouldNotCreate
+            }
+            _ => GroupRepositoryError::CouldNotUpdate,
+        })?;
+
+        Ok(())
+    }
+
+    async fn delete(
+        &mut self,
+        id: &crate::domain::value_object::group_id::GroupId,
+    ) -> Result<(), GroupRepositoryError> {
+        self._delete(id.as_uuid()).await.map_err(|e| match e {
+            sqlx::Error::RowNotFound => GroupRepositoryError::NotFound,
+            _ => GroupRepositoryError::CouldNotDelete,
+        })?;
+
+        Ok(())
+    }
+
+    async fn find_all(&mut self) -> Result<Vec<Group>, GroupRepositoryError> {
+        let group_rows = self
+            ._find_all()
+            .await
+            .map_err(|_| GroupRepositoryError::SQLError)?;
+
+        let groups: Vec<_> = group_rows.into_iter().map(|r| r.into()).collect();
+
+        Ok(groups)
     }
 }
 

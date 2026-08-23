@@ -42,8 +42,51 @@ impl GroupRepository for MemoryGroupRepository {
         Ok(group.clone())
     }
 
-    async fn find_by_name(&mut self, _: String) -> Result<Group, GroupRepositoryError> {
-        todo!()
+    async fn find_by_name(&mut self, name: String) -> Result<Group, GroupRepositoryError> {
+        let groups = self.groups.lock().unwrap();
+
+        groups
+            .iter()
+            .find(|g| g.name() == name)
+            .cloned()
+            .ok_or(GroupRepositoryError::NotFound)
+    }
+
+    async fn update(
+        &mut self,
+        group: &crate::domain::entities::group::Group,
+    ) -> Result<(), GroupRepositoryError> {
+        let mut groups = self.groups.lock().unwrap();
+
+        let slot = groups
+            .iter_mut()
+            .find(|g| g.id().as_uuid() == group.id().as_uuid())
+            .ok_or(GroupRepositoryError::NotFound)?;
+
+        *slot = group.clone();
+
+        Ok(())
+    }
+
+    async fn delete(
+        &mut self,
+        id: &crate::domain::value_object::group_id::GroupId,
+    ) -> Result<(), GroupRepositoryError> {
+        let mut groups = self.groups.lock().unwrap();
+
+        let before = groups.len();
+        groups.retain(|g| g.id().as_uuid() != id.as_uuid());
+
+        if groups.len() == before {
+            return Err(GroupRepositoryError::NotFound);
+        }
+
+        Ok(())
+    }
+
+    async fn find_all(&mut self) -> Result<Vec<Group>, GroupRepositoryError> {
+        let groups = self.groups.lock().unwrap();
+        Ok(groups.clone())
     }
 }
 

@@ -67,6 +67,37 @@ impl PostgresqlUserRepository {
         Ok(())
     }
 
+    async fn _delete(&mut self, id: Uuid) -> Result<(), sqlx::Error> {
+        let result = query!(
+            r#"
+                DELETE FROM users WHERE id = $1;
+            "#,
+            id
+        )
+        .execute(&self.pool)
+        .await?;
+
+        if result.rows_affected() == 0 {
+            return Err(sqlx::Error::RowNotFound);
+        }
+
+        Ok(())
+    }
+
+    async fn _find_by_id(&mut self, id: Uuid) -> Result<UserRow, sqlx::Error> {
+        let user = query_as!(
+            UserRow,
+            r#"
+            select * from users where id = $1
+            "#,
+            id,
+        )
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(user)
+    }
+
     async fn _find_by_group(&mut self, id: Uuid) -> Result<Vec<UserRow>, sqlx::Error> {
         let users = query_as!(
             UserRow,
@@ -151,6 +182,30 @@ impl UserRepository for PostgresqlUserRepository {
             .map_err(|_| UserRepositoryError::CouldNotUpdate)?;
 
         Ok(())
+    }
+
+    async fn delete_user(
+        &mut self,
+        id: &crate::domain::value_object::user_id::UserId,
+    ) -> Result<(), UserRepositoryError> {
+        self._delete(id.as_uuid()).await.map_err(|e| match e {
+            sqlx::Error::RowNotFound => UserRepositoryError::NotFound,
+            _ => UserRepositoryError::CouldNotDelete,
+        })?;
+
+        Ok(())
+    }
+
+    async fn find_by_id(
+        &mut self,
+        id: &crate::domain::value_object::user_id::UserId,
+    ) -> Result<User, UserRepositoryError> {
+        let user_row = self
+            ._find_by_id(id.as_uuid())
+            .await
+            .map_err(|_| UserRepositoryError::NotFound)?;
+
+        Ok(user_row.into())
     }
 }
 

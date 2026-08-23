@@ -2,7 +2,9 @@ use actix_web::web;
 
 use crate::insfractuture::http::{
     auth_controller::auth_ccontroller_factor, group_controller::group_ccontroller_factor,
-    pix_controller::pix_ccontroller_factor, user_controller::user_ccontroller_factor,
+    group_crud_controller::group_crud_ccontroller_factor, pix_controller::pix_ccontroller_factor,
+    user_controller::user_ccontroller_factor,
+    user_crud_controller::user_crud_ccontroller_factor,
 };
 
 pub mod config;
@@ -17,4 +19,6 @@ pub fn controller_factory(conf: &mut web::ServiceConfig) {
     auth_ccontroller_factor(conf);
     group_ccontroller_factor(conf);
     user_ccontroller_factor(conf);
+    group_crud_ccontroller_factor(conf);
+    user_crud_ccontroller_factor(conf);
 }

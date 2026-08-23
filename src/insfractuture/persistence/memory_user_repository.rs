@@ -27,17 +27,62 @@ impl UserRepository for MemoryUserRepository {
 
     async fn find_by_group(
         &mut self,
-        _: &crate::domain::value_object::group_id::GroupId,
+        group_id: &crate::domain::value_object::group_id::GroupId,
     ) -> Result<Vec<User>, UserRepositoryError> {
-        todo!()
+        let users = self.users.lock().unwrap();
+
+        Ok(users
+            .iter()
+            .filter(|u| u.group_id().as_uuid() == group_id.as_uuid())
+            .cloned()
+            .collect())
     }
 
-    async fn update_user(&mut self, _: &User) -> Result<(), UserRepositoryError> {
-        todo!()
+    async fn update_user(&mut self, user: &User) -> Result<(), UserRepositoryError> {
+        let mut users = self.users.lock().unwrap();
+
+        let slot = users
+            .iter_mut()
+            .find(|u| u.id().as_uuid() == user.id().as_uuid())
+            .ok_or(UserRepositoryError::NotFound)?;
+
+        *slot = user.clone();
+
+        Ok(())
+    }
+
+    async fn delete_user(
+        &mut self,
+        id: &crate::domain::value_object::user_id::UserId,
+    ) -> Result<(), UserRepositoryError> {
+        let mut users = self.users.lock().unwrap();
+
+        let before = users.len();
+        users.retain(|u| u.id().as_uuid() != id.as_uuid());
+
+        if users.len() == before {
+            return Err(UserRepositoryError::NotFound);
+        }
+
+        Ok(())
+    }
+
+    async fn find_by_id(
+        &mut self,
+        id: &crate::domain::value_object::user_id::UserId,
+    ) -> Result<User, UserRepositoryError> {
+        let users = self.users.lock().unwrap();
+
+        users
+            .iter()
+            .find(|u| u.id().as_uuid() == id.as_uuid())
+            .cloned()
+            .ok_or(UserRepositoryError::NotFound)
     }
 
     async fn find_all(&mut self) -> Result<Vec<User>, UserRepositoryError> {
-        todo!()
+        let users = self.users.lock().unwrap();
+        Ok(users.clone())
     }
 }
 
